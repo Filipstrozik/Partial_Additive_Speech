@@ -27,24 +27,24 @@ def split_musan_noise(musan_path, save_path):
     musan_sample_rate = 16000
     win_len = musan_sample_rate * 5
     win_step = musan_sample_rate * 3
-    
+
     for folder, _, files in os.walk(musan_path):
         for file in tqdm(files):
             if '.wav' not in file:
                 continue
-            
+
             file_id = int(file[-8: -4])
             # split data into train phase and test phase
             phase = 'train' if file_id % 2 == 0 else 'test'
-            
-            file = os.path.join(folder, file)
-            dest = file.replace(musan_path, os.path.join(save_path, phase)).replace('.', '')
 
+            file = os.path.join(folder, file)
+            # dest = file.replace(musan_path, os.path.join(save_path, phase)).replace('.', '')
+            dest = file.replace(musan_path, os.path.join(save_path, phase))
             os.makedirs(dest, exist_ok=True)
-            
+
             sr, noise = wavfile.read(file)
             num_file = (len(noise) - win_len) // win_step
-            
+
             # small noise file
             if num_file == 0:
                 wavfile.write(f"{dest}/all.wav", sr, noise)
@@ -54,7 +54,7 @@ def split_musan_noise(musan_path, save_path):
                 start = i * win_step
                 end = start + win_len
                 wavfile.write(f"{dest}/{i*3}_{(i*3) + 5}.wav", sr, noise[start : end])
-                
+
 def make_noisy_test_set(vox1_test_path:str, musan_path:str, save_path:str):
     """_summary_
     Generates test data which simulates noisy environments. \\
@@ -86,21 +86,24 @@ def make_noisy_test_set(vox1_test_path:str, musan_path:str, save_path:str):
                     dest = file.replace(vox1_test_path, os.path.join(save_path, f'{category}_{snr}'))
                     os.makedirs(os.path.dirname(dest), exist_ok=True)
                     sf.write(dest, noisy, sr)
-            
-            
-    
+
+
 if __name__ == '__main__':
     """_summary_
     prepareing data for train and test. \\
     Set path variables below.
     """
     print("pre processing")
-    path_vox1_test = '' #ex. '/home/rst/dataset/voxceleb1/test'
-    path_musan = '' # ex. /home/rst/dataset/musan
-    path_splitted_musan = '' # ex. '/home/rst/dataset/musan_split'
-    path_noise_test = '' # ex. '/home/rst/dataset/noise_test'
-    
-    split_musan_noise(musan_path=path_musan, save_path=path_splitted_musan)
-    
+    path_vox1_test = "../../datasets/vox1/vox1_test_wav/wav"  # ex. '/home/rst/dataset/voxceleb1/test'
+    path_musan = "../../datasets/musan/musan/"  # ex. /home/rst/dataset/musan
+    path_splitted_musan = (
+        "../../datasets/musan_split/"  # ex. '/home/rst/dataset/musan_split'
+    )
+    path_noise_test = (
+        "../../datasets/musan_noise_test"  # ex. '/home/rst/dataset/noise_test'
+    )
+
+    # split_musan_noise(musan_path=path_musan, save_path=path_splitted_musan)
+
     path_splitted_musan = os.path.join(path_splitted_musan, 'test')
     make_noisy_test_set(vox1_test_path=path_vox1_test, musan_path=path_splitted_musan, save_path=path_noise_test)

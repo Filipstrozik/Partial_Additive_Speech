@@ -62,9 +62,11 @@ class MusanNoise:
         
         # ----------------------- select noises ----------------------- #
         
+        max_samples = min(len(self.files[category]), self.num_noise[category][1])
+        min_samples = min(self.num_noise[category][0], max_samples)
         noise_files = random.sample(# Bubble noise needs several speech noises
             self.files[category],
-            random.randint(self.num_noise[category][0], self.num_noise[category][1])
+            random.randint(min_samples, max_samples)
         )
         
         noises = []

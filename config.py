@@ -6,10 +6,10 @@ class ExpConfig:
     """
     def __init__(self):
         
-        self.max_epoch              =  100
+        self.max_epoch              =  1
         self.batch_size             =  100
         # ------------------ mel spectrogram config ------------------ #
-        self.n_mels                 =   64
+        self.n_mels                 =   80  # 80
         self.sample_rate            =   16000
         self.n_fft                  =   1024
         self.win_length             =   400
@@ -22,7 +22,7 @@ class ExpConfig:
         # ------------------ pre emphasis coefficient ------------- #
         self.pre_emphasis           =   0.97
         # ------------------ model output config ------------------ #
-        self.embedding_size         =   128
+        self.embedding_size         =   192
         self.output_size            =   1211
         # ------------------ loss config ------------------ #
         self.loss_scale             =   15.
@@ -38,33 +38,41 @@ class ExpConfig:
         # ------------------ data augmentation setting ------------------ #
         self.use_pas                =   True # if False: use TAN
         self.pas_min_utter          =   1 * self.sample_rate # duration * sample rate
-        
+
 class SysConfig:
-    
+
     def __init__(self):
         # ------------------ path of voxceleb1 ------------------ #
-        self.path_vox1_dev_root     = '/data/voxceleb1/train'
-        #self.path_vox1_dev_label    = 'label/check_vox1_dev.csv'
+        self.path_vox1_dev_root = "../../datasets/vox1/vox1_dev_wav/wav"
+        # self.path_vox1_dev_root = "/data/voxceleb1/train"
+        # self.path_vox1_dev_label    = 'label/check_vox1_dev.csv'
         self.path_vox1_dev_label    = 'label/vox1_dev.csv'
-        self.path_vox1_test_root    = '/data/voxceleb1/test'
-        #self.path_vox1_enroll_label = 'label/check_vox1_enroll.csv'
+        self.path_vox1_test_root = "../../datasets/vox1/vox1_test_wav/wav"
+        # self.path_vox1_enroll_label = 'label/check_vox1_enroll.csv'
         self.path_vox1_enroll_label = 'label/vox1_enroll.csv'
-        #self.path_vox1_test_label   = 'label/check_vox1_test.csv'
+        # self.path_vox1_test_label   = 'label/check_vox1_test.csv'
         self.path_vox1_test_label   = 'label/vox1_test.csv'
         # ------------------ path of musan ------------------ #
-        self.path_musan_train       = '/data/vox1_musan/musan_split/train'
-        self.path_musan_test        = '/data/vox1_musan/musan_split/test'
+        self.path_musan_train = "../../datasets/musan_split/train"
+        self.path_musan_test = "../../datasets/musan_split/test"
         # ------------------ paths of (vox1 test + musan) ------------------ #
         # key = 'category_snr', value = path of root folder of test
-        self.path_noisy_tests       = {
-            'music_0' : '/data/vox1_musan/test/music_0', 'music_5' : '/data/vox1_musan/test/music_5',
-            'music_10' : '/data/vox1_musan/test/music_10', 'music_15' : '/data/vox1_musan/test/music_15', 'music_20' : '/data/vox1_musan/test/music_20',
-            
-            'noise_0' : '/data/vox1_musan/test/noise_0', 'noise_5' : '/data/vox1_musan/test/noise_5',
-            'noise_10' : '/data/vox1_musan/test/noise_10', 'noise_15' : '/data/vox1_musan/test/noise_15', 'noise_20' : '/data/vox1_musan/test/noise_20',
-            
-            'speech_0' : '/data/vox1_musan/test/speech_0', 'speech_5' : '/data/vox1_musan/test/speech_5',
-            'speech_10' : '/data/vox1_musan/test/speech_10', 'speech_15' : '/data/vox1_musan/test/speech_15', 'speech_20' : '/data/vox1_musan/test/speech_20'  
+        self.path_noisy_tests = {
+            "music_0": "../../datasets/musan_noise_test/music_0",
+            "music_5": "../../datasets/musan_noise_test/music_5",
+            "music_10": "../../datasets/musan_noise_test/music_10",
+            "music_15": "../../datasets/musan_noise_test/music_15",
+            "music_20": "../../datasets/musan_noise_test/music_20",
+            "noise_0": "../../datasets/musan_noise_test/noise_0",
+            "noise_5": "../../datasets/musan_noise_test/noise_5",
+            "noise_10": "../../datasets/musan_noise_test/noise_10",
+            "noise_15": "../../datasets/musan_noise_test/noise_15",
+            "noise_20": "../../datasets/musan_noise_test/noise_20",
+            "speech_0": "../../datasets/musan_noise_test/speech_0",
+            "speech_5": "../../datasets/musan_noise_test/speech_5",
+            "speech_10": "../../datasets/musan_noise_test/speech_10",
+            "speech_15": "../../datasets/musan_noise_test/speech_15",
+            "speech_20": "../../datasets/musan_noise_test/speech_20",
         }
         # ------------------ wandb setting ------------------ #
         self.wandb_disabled         = True
@@ -76,7 +84,7 @@ class SysConfig:
         self.num_workers            = 4
         self.device                 =   'cuda:0'
         """device to use for training and testing"""
-        
+
         self.random_seed            = 1234
 
 if __name__ == "__main__":

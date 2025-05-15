@@ -1,4 +1,5 @@
 import torch.utils.data as data
+import torchaudio.compliance.kaldi as kaldi
 import torch
 import config
 import torchaudio
@@ -119,6 +120,25 @@ def vox1_trial_list(sys_config=config.SysConfig()):
     return result
 
 
+def compute_fbank(
+    wavform,
+    sample_rate=16000,
+    num_mel_bins=80,
+    frame_length=25,
+    frame_shift=10,
+    cmn=True,
+):
+    feat = kaldi.fbank(
+        wavform,
+        num_mel_bins=num_mel_bins,
+        frame_length=frame_length,
+        frame_shift=frame_shift,
+        sample_frequency=sample_rate,
+    )
+    if cmn:
+        feat = feat - torch.mean(feat, 0)
+    return feat
+
 class PasTrainSet(data.Dataset):
     """_summary_
     Training dataset with PAS data augmentation method.
@@ -138,6 +158,8 @@ class PasTrainSet(data.Dataset):
         utter, spk_id = self.vox1_dev.__getitem__(idx)
         
         if random.randint(0, 3) == 0:
+            utter = utter.unsqueeze(0)
+            utter = compute_fbank(utter)
             return utter, spk_id
         
         length = utter.shape[-1]
@@ -148,8 +170,13 @@ class PasTrainSet(data.Dataset):
         
         utter, _, _ = self.pas(x = utter, length = length)
         utter = torch.Tensor(utter)
-        
+
+        ## COMPUTE FBANK INSIDE DATASET ON (C, N)
+        utter = utter.unsqueeze(0)
+        utter = compute_fbank(utter)
+
         return utter, spk_id
+    
 
 class TanTrainSet(data.Dataset):
     """_summary_
