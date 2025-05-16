@@ -6,10 +6,10 @@ class ExpConfig:
     """
     def __init__(self):
         
-        self.max_epoch              =  1
-        self.batch_size             =  100
+        self.max_epoch              =  50
+        self.batch_size             =  80
         # ------------------ mel spectrogram config ------------------ #
-        self.n_mels                 =   80  # 80
+        self.n_mels                 =   80  
         self.sample_rate            =   16000
         self.n_fft                  =   1024
         self.win_length             =   400
@@ -75,7 +75,7 @@ class SysConfig:
             "speech_20": "../../datasets/musan_noise_test/speech_20",
         }
         # ------------------ wandb setting ------------------ #
-        self.wandb_disabled         = True
+        self.wandb_disabled         = False
         self.wandb_key              = '8c8d77ae7f92de2b007ad093af722aaae5f31003'
         self.wandb_project          = 'data_aug'
         self.wandb_entity           = 'rst0070'

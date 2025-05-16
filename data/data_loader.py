@@ -98,6 +98,17 @@ class Vox1EnrollSet(data.Dataset):
         #tmp.append(utter[-self.utter_length:])
         utter = torch.stack(tmp, dim = 0)        
         # shape of utter == [num_seg, self.utter_length]
+
+        # -------------------- apply fbank -------------------- #
+        fbank_features = []
+        for i in range(utter.shape[0]):
+            segment = utter[i].unsqueeze(0)  # Add channel dimension [1, self.utter_length]
+            fbank = compute_fbank(segment)   # Calculate FBANK features
+            fbank_features.append(fbank)
+        
+        # Stack all FBANK features along batch dimension
+        utter = torch.stack(fbank_features, dim=0)
+
         return utter, spk_id
 
 
@@ -203,6 +214,10 @@ class TanTrainSet(data.Dataset):
         if add_noise != 0: # noisy train data : 3/4 chance
             utter = torch.Tensor(self.musan(utter)) # MusanNoise randomly select category of noise
         
+        # -------------------- apply fbank -------------------- #
+        utter = utter.unsqueeze(0)
+        utter = compute_fbank(utter)
+
         return utter, spk_id
 
 
@@ -249,4 +264,16 @@ class NoisyEnrollSet(data.Dataset):
         
         utter = torch.stack(tmp, dim = 0)        
         # shape of utter == [num_seg, self.utter_length]
+
+
+        # -------------------- apply fbank -------------------- #
+        fbank_features = []
+        for i in range(utter.shape[0]):
+            segment = utter[i].unsqueeze(0)  # Add channel dimension [1, self.utter_length]
+            fbank = compute_fbank(segment)   # Calculate FBANK features
+            fbank_features.append(fbank)
+        
+        # Stack all FBANK features along batch dimension
+        utter = torch.stack(fbank_features, dim=0)
+
         return utter, spk_id

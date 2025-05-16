@@ -84,32 +84,52 @@ class Main:
 
             self.lr_scheduler.step()  
 
-            if epoch < 1 or epoch % 5 != 0:
+            if epoch < 1:
                 continue
 
-            # --------------- test --------------- #
-            eer = self.trainer.test(epoch)
+            # Run testing more frequently
+            test_frequency = 5  # Test every 5 epochs
+            save_frequency = 1  # Save checkpoints every epoch
 
-            # --------------- eer check and save --------------- #
-            if min_eer is None:
-                min_eer = eer
-                for test_type in min_eer.keys():
-                    model_state[test_type] = self.model.state_dict()
-            else:
-                for test_type in min_eer.keys():
-                    # save process by test type
-                    if min_eer[test_type] < eer[test_type]:
-                        continue
+            if epoch % test_frequency == 0:
+                # --------------- test --------------- #
+                eer = self.trainer.test(epoch)
 
-                    min_eer[test_type] = eer[test_type]
-                    model_state[test_type] = self.model.state_dict()
+                # --------------- eer check and save --------------- #
+                if min_eer is None:
+                    min_eer = eer
+                    for test_type in min_eer.keys():
+                        model_state[test_type] = self.model.state_dict()
+                else:
+                    for test_type in min_eer.keys():
+                        # Always save the latest model state
+                        latest_model_path = f"checkpoints/latest_{test_type}.pth"
+                        os.makedirs(os.path.dirname(latest_model_path), exist_ok=True)
+                        torch.save(self.model.state_dict(), latest_model_path)
+                        wandb.save(latest_model_path)
+                        
+                        # save process by test type - only if better than previous best
+                        if min_eer[test_type] < eer[test_type]:
+                            continue
 
-                    file_name = f"{epoch}_{test_type}_{min_eer[test_type]}.pth"
-                    torch.save(model_state[test_type], file_name)
-                    wandb.save(file_name)
+                        min_eer[test_type] = eer[test_type]
+                        model_state[test_type] = self.model.state_dict()
 
-            # --------------- log and schedule learning rate --------------- #
-            print(f"epoch: {epoch} \neer: {eer} \nmin_eer:{min_eer}")        
+                        # Save best model
+                        best_file_name = f"checkpoints/{epoch}_{test_type}_{min_eer[test_type]:.4f}_best.pth"
+                        os.makedirs(os.path.dirname(best_file_name), exist_ok=True)
+                        torch.save(model_state[test_type], best_file_name)
+                        wandb.save(best_file_name)
+                
+                # Additionally save periodic checkpoints regardless of performance
+                if epoch % save_frequency == 0:
+                    periodic_checkpoint = f"checkpoints/epoch_{epoch}.pth"
+                    os.makedirs(os.path.dirname(periodic_checkpoint), exist_ok=True)
+                    torch.save(self.model.state_dict(), periodic_checkpoint)
+                    wandb.save(periodic_checkpoint)
+
+                # --------------- log and schedule learning rate --------------- #
+                print(f"epoch: {epoch} \neer: {eer} \nmin_eer:{min_eer}")        
 
 
 if __name__ == '__main__':

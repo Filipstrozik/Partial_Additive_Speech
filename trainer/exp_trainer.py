@@ -23,7 +23,7 @@ class Trainer:
         ###
         ###    Model and optimizer
         ###
-        self.preprocessing = FeatureExtractor().to(sys_config.device)
+        # self.preprocessing = FeatureExtractor().to(sys_config.device)
         self.model = model.to(sys_config.device)
 
         self.loss_fn = AAMSoftmaxLoss(
@@ -173,8 +173,11 @@ class Trainer:
                 uts = uts.squeeze(0)
                 spk_id = spk_id[0]
                 uts = uts.to(self.sys_config.device)
-                uts = self.preprocessing(uts)
-                embs = self.model(uts).cpu()
+                # uts = self.preprocessing(uts)
+
+                embs = self.model(uts)
+                embs = embs[-1] if isinstance(embs, tuple) else embs
+                embs = embs.cpu()
                 enrolled[spk_id] = F.normalize(input=embs, p=2, dim=1)
 
         return enrolled
