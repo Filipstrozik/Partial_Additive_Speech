@@ -10,6 +10,9 @@ import random
 from data.musan import MusanNoise
 from data.pas import Pas
 
+from data.snsd import SNSD
+from data.prob import ProbabilisticNoiseSNR
+
 class Vox1DevSet(data.Dataset):
     """
     Voxceleb1 development data without data augmentation
@@ -47,7 +50,7 @@ class Vox1DevSet(data.Dataset):
         utter = utter[start_seg : start_seg + self.utter_length]        
         
         return utter, spk_id
-    
+
 class Vox1EnrollSet(data.Dataset):
     """
     Vox1EnrollSet is used to prepare embeddings for testing.  \\
@@ -155,31 +158,40 @@ class PasTrainSet(data.Dataset):
     Training dataset with PAS data augmentation method.
     For 1/4 chance, do not augmentation.
     """
-    
+
     def __init__(self, sys_config=config.SysConfig(), exp_config=config.ExpConfig()):
         super(PasTrainSet, self).__init__()
         self.exp_config = exp_config
         self.vox1_dev = Vox1DevSet()
-        self.pas = Pas(root_path=sys_config.path_musan_train)
-        
+        # self.pas = Pas(root_path=sys_config.path_musan_train)
+        self.snsd = SNSD(root_path=sys_config.path_snsd_train)
+        self.prob_noise = ProbabilisticNoiseSNR()
+
     def __len__(self):
         return len(self.vox1_dev)
-    
+
     def __getitem__(self, idx):
         utter, spk_id = self.vox1_dev.__getitem__(idx)
-        
+
         if random.randint(0, 3) == 0:
             utter = utter.unsqueeze(0)
             utter = compute_fbank(utter)
             return utter, spk_id
-        
+
         length = utter.shape[-1]
-        
+
         utter_len = random.randint(self.exp_config.pas_min_utter, length)
         utter_s = random.randint(0, length - utter_len)
         utter = utter[utter_s : utter_s + utter_len]
-        
-        utter, _, _ = self.pas(x = utter, length = length)
+
+        # utter, _, _ = self.pas(x=utter, length=length)
+
+        # with 0.5 probability add SNSD noise, or add regular noise (to be implemented)
+        if random.randint(0, 1) == 0:
+            utter, _, _ = self.snsd(x=utter, length=length)
+        else:
+            utter, _, _ = self.prob_noise(x=utter, length=length)
+
         utter = torch.Tensor(utter)
 
         ## COMPUTE FBANK INSIDE DATASET ON (C, N)
@@ -187,7 +199,7 @@ class PasTrainSet(data.Dataset):
         utter = compute_fbank(utter)
 
         return utter, spk_id
-    
+
 
 class TanTrainSet(data.Dataset):
     """_summary_

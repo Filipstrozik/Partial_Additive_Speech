@@ -38,6 +38,9 @@ class ExpConfig:
         # ------------------ data augmentation setting ------------------ #
         self.use_pas                =   True # if False: use TAN
         self.pas_min_utter          =   1 * self.sample_rate # duration * sample rate
+        # ------------------- exp name ------------------ #
+
+        self.exp_name               =   "ecapa_tdnn_musan"
 
 class SysConfig:
 
@@ -52,28 +55,32 @@ class SysConfig:
         self.path_vox1_enroll_label = 'label/vox1_enroll.csv'
         # self.path_vox1_test_label   = 'label/check_vox1_test.csv'
         self.path_vox1_test_label   = 'label/vox1_test.csv'
-        # ------------------ path of musan ------------------ #
-        self.path_musan_train = "../../datasets/musan_split/train"
-        self.path_musan_test = "../../datasets/musan_split/test"
-        # ------------------ paths of (vox1 test + musan) ------------------ #
-        # key = 'category_snr', value = path of root folder of test
-        self.path_noisy_tests = {
-            "music_0": "../../datasets/musan_noise_test/music_0",
-            "music_5": "../../datasets/musan_noise_test/music_5",
-            "music_10": "../../datasets/musan_noise_test/music_10",
-            "music_15": "../../datasets/musan_noise_test/music_15",
-            "music_20": "../../datasets/musan_noise_test/music_20",
-            "noise_0": "../../datasets/musan_noise_test/noise_0",
-            "noise_5": "../../datasets/musan_noise_test/noise_5",
-            "noise_10": "../../datasets/musan_noise_test/noise_10",
-            "noise_15": "../../datasets/musan_noise_test/noise_15",
-            "noise_20": "../../datasets/musan_noise_test/noise_20",
-            "speech_0": "../../datasets/musan_noise_test/speech_0",
-            "speech_5": "../../datasets/musan_noise_test/speech_5",
-            "speech_10": "../../datasets/musan_noise_test/speech_10",
-            "speech_15": "../../datasets/musan_noise_test/speech_15",
-            "speech_20": "../../datasets/musan_noise_test/speech_20",
-        }
+        # # ------------------ path of musan ------------------ #
+        # self.path_musan_train = "../../datasets/musan_split/train"
+        # self.path_musan_test = "../../datasets/musan_split/test"
+        # # ------------------ paths of (vox1 test + musan) ------------------ #
+        # # key = 'category_snr', value = path of root folder of test
+        # self.path_noisy_tests = {
+        #     "music_0": "../../datasets/musan_noise_test/music_0",
+        #     "music_5": "../../datasets/musan_noise_test/music_5",
+        #     "music_10": "../../datasets/musan_noise_test/music_10",
+        #     "music_15": "../../datasets/musan_noise_test/music_15",
+        #     "music_20": "../../datasets/musan_noise_test/music_20",
+        #     "noise_0": "../../datasets/musan_noise_test/noise_0",
+        #     "noise_5": "../../datasets/musan_noise_test/noise_5",
+        #     "noise_10": "../../datasets/musan_noise_test/noise_10",
+        #     "noise_15": "../../datasets/musan_noise_test/noise_15",
+        #     "noise_20": "../../datasets/musan_noise_test/noise_20",
+        #     "speech_0": "../../datasets/musan_noise_test/speech_0",
+        #     "speech_5": "../../datasets/musan_noise_test/speech_5",
+        #     "speech_10": "../../datasets/musan_noise_test/speech_10",
+        #     "speech_15": "../../datasets/musan_noise_test/speech_15",
+        #     "speech_20": "../../datasets/musan_noise_test/speech_20",
+        # }
+        # ------------------ path of MS-SNSD ------------------ #
+        self.path_snsd_train = "../../datasets/SNSD/noise_train"
+        self.path_snsd_test = "../../datasets/SNSD/noise_test"
+
         # ------------------ wandb setting ------------------ #
         self.wandb_disabled         = False
         self.wandb_key              = '8c8d77ae7f92de2b007ad093af722aaae5f31003'
