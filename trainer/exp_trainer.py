@@ -63,11 +63,11 @@ class Trainer:
         self.enroll_datasets = {}
         '''clean and noisy enrollment datasets. key = `noise-type_snr` or `clean`'''
 
-        for key in sys_config.path_noisy_tests.keys():
-            root_path = sys_config.path_noisy_tests[key]
-            self.enroll_datasets[key] = NoisyEnrollSet(root_path=root_path)
+        # for key in sys_config.path_noisy_tests.keys():
+        #     root_path = sys_config.path_noisy_tests[key]
+        #     self.enroll_datasets[key] = NoisyEnrollSet(root_path=root_path)
 
-            self.best_eer[key] = 100.
+        #     self.best_eer[key] = 100.
 
         self.enroll_datasets['clean'] = Vox1EnrollSet()
         self.best_eer['clean']    = 100.
