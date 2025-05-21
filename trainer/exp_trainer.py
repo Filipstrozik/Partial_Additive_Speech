@@ -5,7 +5,7 @@ from tqdm import tqdm
 import torch.nn.functional as F
 from data.feature import FeatureExtractor
 import torch.utils.data as data
-from data.data_loader import PasTrainSet, TanTrainSet, Vox1EnrollSet, vox1_trial_list, NoisyEnrollSet
+from data.data_loader import CustomNoisyEnrollSet, PasTrainSet, TanTrainSet, Vox1EnrollSet, load_custom_trial_list, vox1_trial_list, NoisyEnrollSet, OriginalTrainSet
 from trainer.metric import calculate_EER
 from loss.aam_softmax import AAMSoftmaxLoss
 import wandb
@@ -45,7 +45,7 @@ class Trainer:
         if exp_config.use_pas:
             train_dataset = PasTrainSet()
         else:
-            train_dataset = TanTrainSet()
+            train_dataset = OriginalTrainSet()
 
         self.train_loader = data.DataLoader(
             dataset=train_dataset,
@@ -69,9 +69,22 @@ class Trainer:
 
         #     self.best_eer[key] = 100.
 
-        self.enroll_datasets['clean'] = Vox1EnrollSet()
-        self.best_eer['clean']    = 100.
+        # self.enroll_datasets['clean'] = Vox1EnrollSet()
+        self.enroll_datasets["gaussian"] = CustomNoisyEnrollSet(
+            root_path=sys_config.path_vox1_gaussian_root,
+        )
 
+        self.enroll_datasets["Babble"] = CustomNoisyEnrollSet(
+            root_path=sys_config.path_vox1_babble_root,
+        )
+
+        self.best_eer["clean"] = 100.0
+        self.best_eer["gaussian"] = 100.0
+        self.best_eer["Babble"] = 100.0
+
+        self.gaussian_trial_list = load_custom_trial_list(
+            sys_config.path_vox1_gaussian_csv
+        )
         self.trial_list = vox1_trial_list()
         '''trial pairs'''
         self.enrolled = {}
@@ -124,11 +137,18 @@ class Trainer:
             similarity = []
             is_same = []
 
-            for spk_id1, spk_id2, same in tqdm(self.trial_list, desc=f"eval_{enroll_type}"):
+            if enroll_type == "gaussian" or enroll_type == "Babble":
+                trial_list = self.gaussian_trial_list
+            else:
+                trial_list = self.trial_list
 
-                spk1_embs =enrolled[spk_id1] # shape: (N, embedding_size), size: 1
-                spk2_embs =enrolled[spk_id2] # shape: (N, embedding_size), size: 1
-                _score = torch.matmul(spk1_embs, spk2_embs.T).clamp(min=-1, max=1)                        
+            # Original implementation for other enrollment types
+            for spk_id1, spk_id2, same in tqdm(
+                trial_list, desc=f"eval_{enroll_type}"
+            ):
+                spk1_embs = enrolled[spk_id1]  # shape: (N, embedding_size), size: 1
+                spk2_embs = enrolled[spk_id2]  # shape: (N, embedding_size), size: 1
+                _score = torch.matmul(spk1_embs, spk2_embs.T).clamp(min=-1, max=1)
                 score = torch.mean(_score).clamp(min=-1, max=1)
 
                 similarity.append(score)

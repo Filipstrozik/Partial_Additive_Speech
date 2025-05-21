@@ -115,6 +115,79 @@ class Vox1EnrollSet(data.Dataset):
         return utter, spk_id
 
 
+class CustomNoisyEnrollSet(data.Dataset):
+    """
+    Dataset for enrollment with a custom directory structure where audio files
+    are organized by speaker ID directly without video name subdirectories.
+
+    The directory structure is expected to be:
+    root_path/
+        speaker_id1/
+            audio1.wav
+            audio2.wav
+            ...
+        speaker_id2/
+            audio1.wav
+            ...
+
+    `__getitem__(idx)` returns `(utter, spk_id)` where:
+    `spk_id:str`            - The speaker ID (directory name)
+    `utter:torch.Tensor`    - Batched utterance features of shape [batch, time, features]
+    """
+
+    def __init__(
+        self,
+        root_path,
+        audio_extension=".wav",
+        sys_config=config.SysConfig(),
+        exp_config=config.ExpConfig(),
+    ) -> None:
+        super(CustomNoisyEnrollSet, self).__init__()
+        self.path_root_dir = root_path
+        self.utter_length = exp_config.test_sample
+        self.audio_extension = audio_extension
+
+        # Build speaker-to-audio mapping
+        self.samples = []
+        for speaker_id in os.listdir(root_path):
+            speaker_dir = os.path.join(root_path, speaker_id)
+            if os.path.isdir(speaker_dir):
+                for audio_file in os.listdir(speaker_dir):
+                    if audio_file.endswith(audio_extension):
+                        self.samples.append(
+                            {
+                                "speaker_id": speaker_id,
+                                "audio_path": os.path.join(speaker_id, audio_file),
+                            }
+                        )
+
+    def __len__(self):
+        return len(self.samples)
+
+    def __getitem__(self, idx):
+        sample = self.samples[idx]
+        # speaker_id = sample["speaker_id"]
+        audio_path = sample["audio_path"]
+
+        # Get utterance
+        path = os.path.join(self.path_root_dir, audio_path)
+
+        # Load only a portion of the audio for quick debugging
+        # Use a smaller segment for faster loading
+        utter, sr = torchaudio.load(path)
+        utter = torch.squeeze(utter)
+
+        # Apply fbank directly without batching for now
+        if utter.dim() == 1:  # If mono
+            utter = utter.unsqueeze(0)  # Add channel dimension
+        utter = compute_fbank(utter)
+
+        # add 1 more dimension for batch to be [batch, time, features]
+        utter = utter.unsqueeze(0)
+
+        return utter, audio_path
+
+
 def vox1_trial_list(sys_config=config.SysConfig()):
     """_summary_
     Trial list for test.
@@ -132,6 +205,24 @@ def vox1_trial_list(sys_config=config.SysConfig()):
         spk_id2 = anno_table.iloc[idx, 2]
         result.append([spk_id1, spk_id2, is_same])
     return result
+
+
+def load_custom_trial_list(csv_path):
+    """Load a custom trial list from CSV file for evaluation"""
+    if not os.path.exists(csv_path):
+        raise FileNotFoundError(f"Trial list CSV not found at {csv_path}")
+
+    trials = []
+    with open(csv_path, "r") as f:
+        for line in f:
+            parts = line.strip().split()
+            if len(parts) == 3:
+                label = int(parts[0])
+                audio1 = parts[1]
+                audio2 = parts[2]
+                trials.append([audio1, audio2, label])
+
+    return trials
 
 
 def compute_fbank(
@@ -200,6 +291,27 @@ class PasTrainSet(data.Dataset):
 
         return utter, spk_id
 
+
+class OriginalTrainSet(data.Dataset):
+    """_summary_
+    Original training dataset without data augmentation.
+    """
+
+    def __init__(self, sys_config=config.SysConfig(), exp_config=config.ExpConfig()):
+        super(OriginalTrainSet, self).__init__()
+        self.vox1_dev = Vox1DevSet()
+
+    def __len__(self):
+        return len(self.vox1_dev)
+
+    def __getitem__(self, idx):
+        utter, spk_id = self.vox1_dev.__getitem__(idx)
+        
+        # -------------------- apply fbank -------------------- #
+        utter = utter.unsqueeze(0)
+        utter = compute_fbank(utter)
+
+        return utter, spk_id
 
 class TanTrainSet(data.Dataset):
     """_summary_

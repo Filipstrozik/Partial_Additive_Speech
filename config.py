@@ -6,8 +6,8 @@ class ExpConfig:
     """
     def __init__(self):
         
-        self.max_epoch              =  50
-        self.batch_size             =  80
+        self.max_epoch              =  20
+        self.batch_size             =  64
         # ------------------ mel spectrogram config ------------------ #
         self.n_mels                 =   80  
         self.sample_rate            =   16000
@@ -28,19 +28,23 @@ class ExpConfig:
         self.loss_scale             =   15.
         self.loss_margin            =   0.3
         # ------------------ optimizer setting ------------------ #
-        self.lr                     =   1e-3
+        self.lr                     =   1e-4
         self.lr_min                 =   1e-7
-        self.weight_decay           =   1e-4
+        self.weight_decay           =   1e-5
         self.amsgrad                =   True
         # ------------------ learning rate scheduler ------------------ #
         self.lr_sch_step_size       =   1       
         self.lr_sch_gamma           =   0.94
+        # ------------------ reduce on plateau ------------------ #
+        self.lr_sch_patience       =   3
+        self.lr_sch_factor          =   0.5
+
         # ------------------ data augmentation setting ------------------ #
         self.use_pas                =   True # if False: use TAN
         self.pas_min_utter          =   1 * self.sample_rate # duration * sample rate
         # ------------------- exp name ------------------ #
 
-        self.exp_name               =   "ecapa_tdnn_musan"
+        self.exp_name               =   "ecapa_tdnn_ft_frozen"
 
 class SysConfig:
 
@@ -55,6 +59,13 @@ class SysConfig:
         self.path_vox1_enroll_label = 'label/vox1_enroll.csv'
         # self.path_vox1_test_label   = 'label/check_vox1_test.csv'
         self.path_vox1_test_label   = 'label/vox1_test.csv'
+
+        self.path_vox1_gaussian_root = (
+            "../SV-eval/data/noisy/gaussian/vox1_test_segments_snr_10_noisy_gaussian"
+        )
+        self.path_vox1_babble_root = "../SV-eval/data/noisy_bg/vox1_test_wav_bq_noise/Babble/vox1_test_wav_snr_10_Babble"
+
+        self.path_vox1_gaussian_csv = "label/gaussian_trials.csv"
         # # ------------------ path of musan ------------------ #
         # self.path_musan_train = "../../datasets/musan_split/train"
         # self.path_musan_test = "../../datasets/musan_split/test"
@@ -83,12 +94,12 @@ class SysConfig:
 
         # ------------------ wandb setting ------------------ #
         self.wandb_disabled         = False
-        self.wandb_key              = '8c8d77ae7f92de2b007ad093af722aaae5f31003'
-        self.wandb_project          = 'data_aug'
-        self.wandb_entity           = 'rst0070'
+        self.wandb_key = "7f5d1d17417e563f04b7264553f0b853133a0265"
+        self.wandb_project          = 'data_pas_aug_finetune'
+        self.wandb_entity           = 'ecapa_tdnn_finetune'
         self.wandb_name             = ''
         # ------------------ device setting ------------------ #
-        self.num_workers            = 4
+        self.num_workers            = 1
         self.device                 =   'cuda:0'
         """device to use for training and testing"""
 
